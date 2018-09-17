@@ -1,20 +1,25 @@
 use std::collections::HashMap;
 
-struct DomainInfo {
+pub struct DomainInfo {
     num_levels: u32, // TODO: is this same as levels.size??
     filename: String,
     levels: Vec<String>,
 }
 
-struct MojoModelInfo {
+pub struct MojoModelInfo {
     properties: HashMap<String, String>,
     columns: Vec<String>,
     domains: HashMap<i32, DomainInfo>,
     domain_lengths: Vec<i32>,
 }
 
-enum ModelCategory {
+/// A model category.
+///
+pub enum ModelCategory {
+    /// we don't know
     Unknown      = 0,
+
+    /** simply true or false */
     Binomial     = 1,
     Multinomial  = 2,
     Regression   = 3,
@@ -23,7 +28,10 @@ enum ModelCategory {
     DimReduction = 6
 }
 
-struct MojoModel {
+/**
+ * some mojo model
+ */
+pub struct MojoModel {
     mojo_version_major: i32,
     mojo_version_minor: i32,
     info: MojoModelInfo,
@@ -53,10 +61,12 @@ mod tests {
     }
 
     use MojoModel;
+    use ::ModelCategory;
 
     #[test]
     fn can_load() {
         let mm = MojoModel::load("test.mdl")?;
-//        let ModelCategory c = ModelCategory::Binomial();
+        let a = ModelCategory::Regression;
+        let c = ModelCategory::Binomial();
     }
 }
