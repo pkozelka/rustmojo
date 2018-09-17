@@ -1,0 +1,6 @@
+[package]
+name = "rustmojo"
+version = "0.1.0"
+authors = ["Petr Kozelka <pkozelka@gmail.com>"]
+
+[dependencies]
