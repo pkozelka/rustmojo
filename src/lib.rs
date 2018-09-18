@@ -14,7 +14,6 @@ pub struct MojoModelInfo {
 }
 
 /// A model category.
-///
 pub enum ModelCategory {
     /// we don't know
     Unknown      = 0,
@@ -38,7 +37,7 @@ pub struct MojoModel {
     category: ModelCategory,
     uuid: String,
     supervised: bool,
-    nfeatures: i32,
+    pub nfeatures: i32,
     nclasses: i32,
     balance_classes: i32,
     default_threshold: i32,
@@ -48,8 +47,29 @@ pub struct MojoModel {
 }
 
 impl MojoModel {
-    fn load(filename: &str) -> Result<MojoModel, &str> {
-        panic!("not implemented yet");
+    pub fn load(filename: &str) -> Result<MojoModel, &str> {
+        println!("Loading {}", &filename);
+        return Ok(MojoModel {
+            mojo_version_major: 0,
+            mojo_version_minor: 0,
+            info: MojoModelInfo {
+                properties: HashMap::new(),
+                columns: Vec::new(),
+                domains: HashMap::new(),
+                domain_lengths: Vec::new(),
+            },
+            uuid: String::new(),
+            supervised: false,
+            nfeatures: 0,
+            nclasses: 0,
+            balance_classes: 0,
+            default_threshold: 0,
+            prior_class_distrib: Vec::new(),
+            model_class_distrib: Vec::new(),
+            empty_vector_of_strings: Vec::new(),
+            category: ModelCategory::Binomial,
+        });
+//        panic!("not implemented yet");
     }
 }
 
