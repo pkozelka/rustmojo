@@ -1,31 +1,17 @@
 use ::rowdata::ValueType;
 use ::rowdata::RowData;
-use ::rowdata::RowDataStruct;
 
 #[test]
 fn it_works() {
     assert_eq!(2 + 2, 4);
 }
 
-use MojoModel;
-use ::ModelCategory;
-
-#[test]
-fn can_load() {
-    let mm = MojoModel::load("test.mdl");
-    let a = ModelCategory::Regression;
-    let c = ModelCategory::Binomial;
-}
-
-
 #[test]
 fn test_rowdata() {
-    let data = RowDataStruct{
-        xvalue: 1.2346,
-    };
-
-
+    let mut data = RowData::new();
     data.set("a",ValueType::Text(String::from("Hello")));
+    data.set("haha", ValueType::Number(6.2631));
 
-    println!("value = {}", data.get("haha"));
+    println!("haha = {}", data.get("haha"));
+    println!("hoho = {}", data.get("hoho"));
 }

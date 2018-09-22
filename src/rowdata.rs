@@ -1,6 +1,7 @@
 use std::fmt::Display;
 use std::fmt::Formatter;
 use core::fmt;
+use std::collections::HashMap;
 
 pub enum ValueType {
     None,
@@ -18,22 +19,25 @@ impl Display for ValueType {
     }
 }
 
-pub trait RowData {
-    fn set(&self, key: &str, value: ValueType);
-    fn get(&self, key: &str) -> ValueType;
+pub struct RowData {
+    data: HashMap<String,ValueType>
 }
 
-pub struct RowDataStruct {
-    pub xvalue: f64
-}
-
-impl RowData for RowDataStruct {
-    fn set(&self, key: &str, value: ValueType) {
-        println!("ok");
+impl RowData {
+    pub fn new() -> RowData {
+        return RowData {
+            data: HashMap::new()
+        }
     }
 
-    fn get(&self, key: &str) -> ValueType {
-        ValueType::Number(self.xvalue)
+    pub fn set(& mut self, key: &str, value: ValueType) {
+        self.data.insert(String::from(key), value);
+    }
+
+    pub fn get(&self, key: &str) -> &ValueType {
+        match self.data.get(key) {
+            Option::None => &ValueType::None,
+            Option::Some(x) => x
+        }
     }
 }
-
