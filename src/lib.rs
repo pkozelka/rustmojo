@@ -1,10 +1,8 @@
 extern crate core;
 
+mod rowdata;
+
 use std::collections::HashMap;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::error::Error;
-use core::fmt;
 
 pub struct DomainInfo {
     num_levels: u32, // TODO: is this same as levels.size??
@@ -79,69 +77,5 @@ impl MojoModel {
     }
 }
 
-pub enum ValueType {
-    None,
-    Text(String),
-    Number(f64),
-}
-
-impl Display for ValueType {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        match self {
-            ValueType::None => write!(f, "None"),
-            ValueType::Text(s) => write!(f, "string('{}')", s),
-            ValueType::Number(n) => write!(f, "number({})", n),
-        }
-    }
-}
-
-pub trait RowData {
-    fn set(&self, key: &str, value: ValueType);
-    fn get(&self, key: &str) -> ValueType;
-}
-
-pub struct RowDataStruct {
-    xvalue: f64
-}
-
-impl RowData for RowDataStruct {
-    fn set(&self, key: &str, value: ValueType) {
-        println!("ok");
-    }
-
-    fn get(&self, key: &str) -> ValueType {
-        ValueType::Number(self.xvalue)
-    }
-}
-
 #[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-
-    use MojoModel;
-    use ::ModelCategory;
-
-    #[test]
-    fn can_load() {
-        let mm = MojoModel::load("test.mdl");
-        let a = ModelCategory::Regression;
-        let c = ModelCategory::Binomial;
-    }
-
-
-    #[test]
-    fn test_rowdata() {
-        let data = ::RowDataStruct{
-            xvalue: 1.2346,
-        };
-
-        use RowData;
-
-        data.set("a",::ValueType::Text(String::from("Hello")));
-
-        println!("value = {}", data.get("haha"));
-    }
-}
+mod tests;
