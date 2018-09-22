@@ -87,7 +87,11 @@ pub enum ValueType {
 
 impl Display for ValueType {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "ValueType()")
+        match self {
+            ValueType::None => write!(f, "None"),
+            ValueType::Text(s) => write!(f, "string('{}')", s),
+            ValueType::Number(n) => write!(f, "number({})", n),
+        }
     }
 }
 
