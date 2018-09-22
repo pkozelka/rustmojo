@@ -9,9 +9,9 @@ fn it_works() {
 #[test]
 fn test_rowdata() {
     let mut data = RowData::new();
-    data.set("a",ValueType::Text(String::from("Hello")));
-    data.set("haha", ValueType::Number(6.2631));
+    data.insert(String::from("a"),ValueType::Text(String::from("Hello")));
+    data.insert(String::from("haha"), ValueType::Number(6.2631));
 
-    println!("haha = {}", data.get("haha"));
-    println!("hoho = {}", data.get("hoho"));
+    println!("haha = {}", data.get("haha").unwrap());
+    println!("hoho is none: {}", data.get("hoho").is_none());
 }
