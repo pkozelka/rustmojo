@@ -7,22 +7,22 @@ enum SplitValue {
     IsPresentInSet(u64/*TODO: &bitset!*/),
 }
 
-enum  SubNode<'a> {
+enum  SubNode {
     Leaf(f32),
-    NestedNode(&'a MtrNode<'a>)
+    NestedNode(Box<MtrNode>)
 }
 
-struct MtrNode<'a> {
+struct MtrNode {
     address: u32,
     node_type: u8,
     split_dir: u8,
     split_column_id: u16,
     split_value: SplitValue,
 
-    left: SubNode<'a>,
+    left: SubNode,
 
     right_node_address: u32,
-    right:SubNode<'a>,
+    right:SubNode,
 }
 
 struct MojoInformation {
@@ -31,7 +31,7 @@ struct MojoInformation {
     // columns, domains, ...
 }
 
-fn read_root_node<'a>() -> MtrNode<'a> {
+fn read_node() -> MtrNode {
     MtrNode {
         address: 0,
         node_type: 0,
