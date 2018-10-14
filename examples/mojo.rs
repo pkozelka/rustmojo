@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::Read;
-use std::error::Error;
+use std::io::Error;
+use std::io::ErrorKind;
 use std::slice::Iter;
 
 enum SplitValue {
@@ -37,15 +38,42 @@ struct MojoReader {
     info: MojoInformation,
 }
 
+fn read_u8(input: &mut Iter<u8>) -> Result<u8, Error> {
+    match input.next() {
+        None => Err(Error::new(ErrorKind::UnexpectedEof, "oh no")),
+        Some(byte) => Ok(*byte)
+    }
+}
+
+fn read_u16(input: &mut Iter<u8>) -> Result<u16, Error> {
+    let l: u16 = read_u8(input)? as u16;
+    let h: u16 = read_u8(input)? as u16;
+    Ok((h << 8) + l)
+}
+
+fn read_u32(input: &mut Iter<u8>) -> Result<u32, Error> {
+    let l: u32 = read_u8(input)? as u32;
+    let h: u32 = read_u8(input)? as u32;
+    Ok((h << 16) + l)
+}
+
+fn read_f32(input: &mut Iter<u8>) -> Result<f32, Error> {
+    let value = read_u32(input)?;
+    let num: f32 = unsafe { std::mem::transmute(value)};
+    Ok(num)
+}
+
 impl MojoReader {
 
     fn new(info: MojoInformation) -> MojoReader {
         MojoReader{info: info}
     }
 
-    fn read_node(&mut self, input: &mut Iter<u8>) -> Result<SubNode, &Error> {
+    fn read_node(&mut self, input: &mut Iter<u8>) -> Result<SubNode, Error> {
         let nodeflags = input.next().unwrap();
         println!("nodeflags {}", nodeflags);
+        let field_no = read_u16(input)?;
+        println!("field_no {}", field_no);
         Ok(SubNode::Leaf(1.2))
     }
 }
