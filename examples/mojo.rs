@@ -1,5 +1,7 @@
 use std::fs::File;
 use std::io::Read;
+use std::error::Error;
+use std::slice::Iter;
 
 enum SplitValue {
     IsNotANumber,
@@ -31,16 +33,20 @@ struct MojoInformation {
     // columns, domains, ...
 }
 
-fn read_node() -> MtrNode {
-    MtrNode {
-        address: 0,
-        node_type: 0,
-        split_dir: 0,
-        split_column_id: 0,
-        split_value: SplitValue::IsLessOrEqualTo(0.0),
-        left: SubNode::Leaf(1.2),
-        right_node_address: 0,
-        right: SubNode::Leaf(3.4),
+struct MojoReader {
+    info: MojoInformation,
+}
+
+impl MojoReader {
+
+    fn new(info: MojoInformation) -> MojoReader {
+        MojoReader{info: info}
+    }
+
+    fn read_node(&mut self, input: &mut Iter<u8>) -> Result<SubNode, &Error> {
+        let nodeflags = input.next().unwrap();
+        println!("nodeflags {}", nodeflags);
+        Ok(SubNode::Leaf(1.2))
     }
 }
 
@@ -51,11 +57,19 @@ fn main() {
     println!("file size is {}", size);
     let mut buf = Vec::new();
     let bytes = file.read_to_end(&mut buf).unwrap();
+    let mut reader = MojoReader::new(MojoInformation{mojo_version: 100, nclasses: 2});
+    let root = reader.read_node(&mut buf.iter()).expect("ERROR");
+    match root {
+        SubNode::Leaf(value) => println!("leaf value is {}", value),
+        SubNode::NestedNode(_) => println!("subnode")
+    }
     println!("byte count is {}", bytes);
 
+/*
     let mut position = 0;
     for byte in buf {
         println!("{:5} = 0x{0:04X} {:02X}", position, byte);
         position += 1;
     }
+*/
 }
