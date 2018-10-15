@@ -1,3 +1,5 @@
+extern crate rustmojo;
+
 use std::fs::File;
 use std::io::Read;
 use std::io::Error;
@@ -70,8 +72,8 @@ impl MojoReader {
     }
 
     fn read_node(&mut self, input: &mut Iter<u8>) -> Result<SubNode, Error> {
-        let nodeflags = input.next().unwrap();
-        println!("nodeflags {}", nodeflags);
+        let nodeflags = rustmojo::mojoflags::MojoFlags::new(*input.next().unwrap())?;
+        println!("nodeflags.offset_size = {}", nodeflags.offset_size);
         let field_no = read_u16(input)?;
         println!("field_no {}", field_no);
         Ok(SubNode::Leaf(1.2))
