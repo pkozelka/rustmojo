@@ -2,9 +2,39 @@ extern crate rustmojo;
 
 use rustmojo::mojoreader::MojoInformation;
 use rustmojo::mojoreader::MojoReader;
+use rustmojo::mojoreader::SplitValue;
 use rustmojo::mojoreader::SubNode;
 use std::fs::File;
 use std::io::Read;
+
+fn treeprint(indent: &str, node: &SubNode) {
+    match node {
+        SubNode::Leaf(value) => {
+            println!("{}   {}", indent, value)
+        },
+        SubNode::NestedNode(split) => {
+            let condition = match split.split_value {
+                SplitValue::IsNotANumber => {
+                    String::from("is NaN ?")
+                },
+                SplitValue::IsLessOrEqualTo(f) => {
+                    format!("is <= {}", f)
+                },
+                SplitValue::IsPresentInSet(_) => {
+                    String::from("is in set(...todo...)")
+                },
+            };
+            println!("{}   split: Col{} is {}", indent, split.split_column_id, condition);
+            let mut indent = String::from(indent.clone());
+            indent.push(' ');
+            indent.push(' ');
+            println!("{} left:", indent);
+            treeprint(&indent, &split.left);
+            println!("{} right:", indent);
+            treeprint(&indent, &split.right);
+        },
+    }
+}
 
 fn main() {
     println!("Hello");
@@ -20,6 +50,8 @@ fn main() {
         SubNode::NestedNode(_) => println!("subnode")
     }
     println!("byte count is {}", bytes);
+
+    treeprint("", &root);
 
 /*
     let mut position = 0;

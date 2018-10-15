@@ -30,13 +30,13 @@ pub struct MtrNode {
 //    address: u32,
 //    node_type: u8,
 //    split_dir: u8,
-//    split_column_id: u16,
+    pub split_column_id: u16,
     pub split_value: SplitValue,
 
-    left: SubNode,
+    pub left: SubNode,
 
 //    right_node_address: u32,
-    right:SubNode,
+    pub right:SubNode,
 }
 
 pub struct MojoInformation {
@@ -121,10 +121,10 @@ impl MojoReader {
                  nodeflags.left_node_is_leaf,
                  nodeflags.right_node_is_leaf,
                  nodeflags.offset_size);
-        let field_no = read_u16(input)?;
-        println!("field_no {}", field_no);
+        let split_column_id = read_u16(input)?;
+        println!("field_no {}", split_column_id);
 
-        if field_no == 0xFFFF {
+        if split_column_id == 0xFFFF {
             return Ok(SubNode::Leaf(read_f32(input)?))
         }
 
@@ -183,6 +183,7 @@ impl MojoReader {
         };
 
         let node = MtrNode{
+            split_column_id: split_column_id,
             split_value: (split_value),
             left: (left_node),
             right: (right_node),
