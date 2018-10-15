@@ -8,7 +8,7 @@ pub enum SplitValueType {
 }
 
 pub struct MojoFlags {
-    flags: u8,
+//    flags: u8,
     pub left_node_is_leaf: bool,
     pub right_node_is_leaf: bool,
     pub offset_size: u8,
@@ -35,7 +35,7 @@ impl MojoFlags {
             _ => return Err(Error::new(ErrorKind::InvalidData, "Invalid split_value_type value"))
         };
         Ok(MojoFlags{
-            flags: flags,
+//            flags: flags,
             left_node_is_leaf: left_node_is_leaf,
             right_node_is_leaf: right_node_is_leaf,
             offset_size: (flags & 0x03) + 1,

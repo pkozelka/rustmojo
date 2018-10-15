@@ -83,7 +83,7 @@ impl MojoReader {
         let field_no = read_u16(input)?;
         println!("field_no {}", field_no);
 
-        if (field_no == 0xFFFF) {
+        if field_no == 0xFFFF {
             return Ok(SubNode::Leaf(read_f32(input)?))
         }
         Ok(SubNode::Leaf(1.2))

@@ -1,14 +1,10 @@
 extern crate rustmojo;
 
-use rustmojo::mojoreader;
 use rustmojo::mojoreader::MojoInformation;
 use rustmojo::mojoreader::MojoReader;
 use rustmojo::mojoreader::SubNode;
 use std::fs::File;
-use std::io::Error;
-use std::io::ErrorKind;
 use std::io::Read;
-use std::slice::Iter;
 
 fn main() {
     println!("Hello");
