@@ -33,10 +33,10 @@ pub struct MtrNode {
 //    split_column_id: u16,
     pub split_value: SplitValue,
 
-//    left: SubNode,
+    left: SubNode,
 
 //    right_node_address: u32,
-//    right:SubNode,
+    right:SubNode,
 }
 
 pub struct MojoInformation {
@@ -57,7 +57,10 @@ pub struct MojoReader {
 fn read_u8(input: &mut Iter<u8>) -> Result<u8, Error> {
     match input.next() {
         None => Err(Error::new(ErrorKind::UnexpectedEof, "oh no")),
-        Some(byte) => Ok(*byte)
+        Some(&byte) => {
+            println!(".... {:02X}", byte);
+            Ok(byte)
+        }
     }
 }
 
@@ -68,8 +71,8 @@ fn read_u16(input: &mut Iter<u8>) -> Result<u16, Error> {
 }
 
 fn read_u32(input: &mut Iter<u8>) -> Result<u32, Error> {
-    let l: u32 = read_u8(input)? as u32;
-    let h: u32 = read_u8(input)? as u32;
+    let l: u32 = read_u16(input)? as u32;
+    let h: u32 = read_u16(input)? as u32;
     Ok((h << 16) + l)
 }
 
@@ -79,15 +82,17 @@ fn read_f32(input: &mut Iter<u8>) -> Result<f32, Error> {
     Ok(num)
 }
 
-fn skip(input: &mut Iter<u8>, nbytes: u16) -> Result<(), Error> {
-    for i in 0..nbytes {
+fn skip(input: &mut Iter<u8>, nbytes: u16) -> Result<(), Error> {   
+    for _ in 0..nbytes {
         read_u8(input)?;
     }
     Ok(())
 }
 
 fn read_direction(input: &mut Iter<u8>) -> Result<NaSplitDir, Error>{
-    match read_u8(input)? {
+    let dirbyte = read_u8(input)?;
+    println!("dirbyte: {}", dirbyte);
+    match dirbyte {
         0 => Ok(NaSplitDir::None),
         1 => Ok(NaSplitDir::NAvsREST),
         2 => Ok(NaSplitDir::NALeft),
@@ -105,8 +110,13 @@ impl MojoReader {
     }
 
     pub fn read_node(&mut self, input: &mut Iter<u8>) -> Result<SubNode, Error> {
-        let nodeflags = MojoFlags::new(*input.next().unwrap())?;
-        println!("nodeflags.offset_size = {}", nodeflags.offset_size);
+        let flagbyte = read_u8(input)?;
+        let nodeflags = MojoFlags::new(flagbyte)?;
+        println!("nodeflags[{:02X}]: leftleaf: {}, rightleaf: {}, offset_size = {}",
+                 flagbyte,
+                 nodeflags.left_node_is_leaf,
+                 nodeflags.right_node_is_leaf,
+                 nodeflags.offset_size);
         let field_no = read_u16(input)?;
         println!("field_no {}", field_no);
 
@@ -122,24 +132,50 @@ impl MojoReader {
         if let NaSplitDir::NAvsREST = dir {
             split_value = SplitValue::IsNotANumber;
         } else {
-            match nodeflags.split_value_type {
+            split_value = match nodeflags.split_value_type {
                 SplitValueType::Number => {
-                    split_value = SplitValue::IsLessOrEqualTo(read_f32(input)?);
+                    SplitValue::IsLessOrEqualTo(read_f32(input)?)
                 },
                 SplitValueType::Bitset => {
-                    let bit_offset = read_u16(input)?;
+                    let _bit_offset = read_u16(input)?;
                     let nbytes = read_u16(input)?;
-                    split_value = SplitValue::IsPresentInSet(0 /*todo!*/);
-                    skip(input, nbytes);
+                    println!("bitset[{},{}]", _bit_offset, nbytes);
+                    skip(input, nbytes)?;
+                    println!("--");
+                    SplitValue::IsPresentInSet(0 /*todo!*/)
                 },
                 SplitValueType::Bitset32 => {
                     let bits = read_u32(input)?;
-                    split_value = SplitValue::IsPresentInSet(bits /*todo!*/);
+                    SplitValue::IsPresentInSet(bits /*todo!*/)
                 },
-            }
-        }
+            };
+        };
 
+        let left_node = if nodeflags.left_node_is_leaf {
+            let leaf = read_f32(input)?;
+            println!("left leaf: {}", leaf);
+            SubNode::Leaf(leaf)
+        } else {
+            println!("offset");
+            skip(input, nodeflags.offset_size as u16)?;
+            println!("left node");
+            self.read_node(input)?
+        };
 
-        Ok(SubNode::Leaf(1.2))
+        let right_node = if nodeflags.right_node_is_leaf {
+            let leaf = read_f32(input)?;
+            println!("right leaf: {}", leaf);
+            SubNode::Leaf(leaf)
+        } else {
+            println!("right node");
+            self.read_node(input)?
+        };
+
+        let node = MtrNode{
+            split_value: (split_value),
+            left: (left_node),
+            right: (right_node),
+        };
+        Ok(SubNode::NestedNode(Box::new(node)))
     }
 }
