@@ -1,10 +1,10 @@
 extern crate std;
 
 use mojoflags::MojoFlags;
+use mojoflags::SplitValueType;
 use std::io::Error;
 use std::io::ErrorKind;
 use std::slice::Iter;
-use mojoflags::SplitValueType;
 
 pub enum SplitValue {
     IsNotANumber,
@@ -103,6 +103,10 @@ fn read_direction(input: &mut Iter<u8>) -> Result<NaSplitDir, Error>{
     }
 }
 
+fn bits_to_bytes(nbits: u32) -> u32 {
+    ((nbits-1) >> 3) + 1
+}
+
 impl MojoReader {
 
     pub fn new(info: MojoInformation) -> MojoReader {
@@ -112,7 +116,7 @@ impl MojoReader {
     pub fn read_node(&mut self, input: &mut Iter<u8>) -> Result<SubNode, Error> {
         let flagbyte = read_u8(input)?;
         let nodeflags = MojoFlags::new(flagbyte)?;
-        println!("nodeflags[{:02X}]: leftleaf: {}, rightleaf: {}, offset_size = {}",
+        println!("nodeflags[{:02X}]: left is leaf: {}, right is leaf: {}, offset_size = {}",
                  flagbyte,
                  nodeflags.left_node_is_leaf,
                  nodeflags.right_node_is_leaf,
@@ -137,10 +141,17 @@ impl MojoReader {
                     SplitValue::IsLessOrEqualTo(read_f32(input)?)
                 },
                 SplitValueType::Bitset => {
-                    let _bit_offset = read_u16(input)?;
-                    let nbytes = read_u16(input)?;
-                    println!("bitset[{},{}]", _bit_offset, nbytes);
-                    skip(input, nbytes)?;
+                    let bit_offset = read_u16(input)?;
+                    if self.info.mojo_version < 130 {
+                        let nbytes = read_u16(input)?;
+                        println!("bitset[{},{}]", bit_offset, nbytes);
+                        skip(input, nbytes)?;
+                    } else {
+                        let nbits = read_u32(input)?;
+                        let nbytes = bits_to_bytes(nbits);
+                        println!("bitset[{},{}]", bit_offset, nbytes);
+                        skip(input, nbytes as u16)?;
+                    }
                     println!("--");
                     SplitValue::IsPresentInSet(0 /*todo!*/)
                 },
