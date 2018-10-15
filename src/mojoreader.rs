@@ -4,14 +4,22 @@ use mojoflags::MojoFlags;
 use std::io::Error;
 use std::io::ErrorKind;
 use std::slice::Iter;
+use mojoflags::SplitValueType;
 
-/*
-enum SplitValue {
+pub enum SplitValue {
     IsNotANumber,
     IsLessOrEqualTo(f32),
-    IsPresentInSet(u64*//*TODO: &bitset!*//*),
+    IsPresentInSet(u32 /*TODO: &bitset!*/),
 }
-*/
+
+enum NaSplitDir {
+    None,
+    NAvsREST,
+    NALeft,
+    NARight,
+    Left,
+    Right,
+}
 
 pub enum SubNode {
     Leaf(f32),
@@ -23,7 +31,7 @@ pub struct MtrNode {
 //    node_type: u8,
 //    split_dir: u8,
 //    split_column_id: u16,
-//    split_value: SplitValue,
+    pub split_value: SplitValue,
 
 //    left: SubNode,
 
@@ -71,6 +79,25 @@ fn read_f32(input: &mut Iter<u8>) -> Result<f32, Error> {
     Ok(num)
 }
 
+fn skip(input: &mut Iter<u8>, nbytes: u16) -> Result<(), Error> {
+    for i in 0..nbytes {
+        read_u8(input)?;
+    }
+    Ok(())
+}
+
+fn read_direction(input: &mut Iter<u8>) -> Result<NaSplitDir, Error>{
+    match read_u8(input)? {
+        0 => Ok(NaSplitDir::None),
+        1 => Ok(NaSplitDir::NAvsREST),
+        2 => Ok(NaSplitDir::NALeft),
+        3 => Ok(NaSplitDir::NARight),
+        4 => Ok(NaSplitDir::Left),
+        5 => Ok(NaSplitDir::Right),
+        _ => Err(Error::new(ErrorKind::InvalidData, "Invalid direction"))
+    }
+}
+
 impl MojoReader {
 
     pub fn new(info: MojoInformation) -> MojoReader {
@@ -86,6 +113,33 @@ impl MojoReader {
         if field_no == 0xFFFF {
             return Ok(SubNode::Leaf(read_f32(input)?))
         }
+
+        let dir = read_direction(input)?;
+//        println!("direction: {}", dir);
+
+        let split_value: SplitValue;
+
+        if let NaSplitDir::NAvsREST = dir {
+            split_value = SplitValue::IsNotANumber;
+        } else {
+            match nodeflags.split_value_type {
+                SplitValueType::Number => {
+                    split_value = SplitValue::IsLessOrEqualTo(read_f32(input)?);
+                },
+                SplitValueType::Bitset => {
+                    let bit_offset = read_u16(input)?;
+                    let nbytes = read_u16(input)?;
+                    split_value = SplitValue::IsPresentInSet(0 /*todo!*/);
+                    skip(input, nbytes);
+                },
+                SplitValueType::Bitset32 => {
+                    let bits = read_u32(input)?;
+                    split_value = SplitValue::IsPresentInSet(bits /*todo!*/);
+                },
+            }
+        }
+
+
         Ok(SubNode::Leaf(1.2))
     }
 }
