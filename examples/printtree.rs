@@ -1,9 +1,9 @@
-extern crate rustmojo;
+extern crate rustmojo as this;
 
-use rustmojo::mojoreader::MojoInformation;
-use rustmojo::mojoreader::MojoReader;
-use rustmojo::mojoreader::SplitValue;
-use rustmojo::mojoreader::SubNode;
+use this::mojoreader::MojoInformation;
+use this::mojoreader::MojoReader;
+use this::mojoreader::SplitValue;
+use this::mojoreader::SubNode;
 use std::fs::File;
 use std::io::Read;
 
