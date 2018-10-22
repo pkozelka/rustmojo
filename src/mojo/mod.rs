@@ -10,7 +10,10 @@ pub struct Mojo {
 }
 
 pub struct BinomialPrediction {
-
+    pub labelIndex: u32,
+    pub label: String,
+    pub p0: f64,
+    pub p1: f64,
 }
 
 impl Mojo {
@@ -23,14 +26,21 @@ impl Mojo {
         println!("modelini: '{}'", model_ini_path.clone().into_os_string().to_str().unwrap());
         let modelini = modelini::ModelIni::parse(model_ini_path)?;
 
-        for (key,value) in modelini.info {
+        for (key,value) in modelini.s_info {
             println!("info['{}']='{}'", key, value);
         }
 
+        println!("mojo_version: {}", modelini.info.mojo_version);
         Ok(Mojo{})
     }
 
-    pub fn predict_binomial(&self, _params: HashMap<String, String>) -> io::Result<bool>{
-        Err(Error::new(io::ErrorKind::WriteZero, "not implemented"))
+    pub fn predict_binomial(&self, row: HashMap<&str, &str>) -> io::Result<BinomialPrediction>{
+//        Err(Error::new(io::ErrorKind::WriteZero, "not implemented"))
+        Ok(BinomialPrediction{
+            labelIndex: 0,
+            label: String::from("DUMMY"),
+            p0: 0.5,
+            p1: 0.5,
+        })
     }
 }
