@@ -15,7 +15,8 @@ impl ModelIni {
         let file = File::open(model_ini_path)?;
         let buf = BufReader::new(file);
         let mut lines= buf.lines();
-        ModelIni::append(&mut lines)
+        let result = ModelIni::append(&mut lines);
+        result
     }
 
     fn append<I>(lines: &mut I) -> Result<ModelIni>
