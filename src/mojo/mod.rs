@@ -3,10 +3,6 @@ use std::path::Path;
 use std::io;
 use std::collections::HashMap;
 use std::io::Error;
-use std::fs::File;
-use std::io::BufReader;
-use std::io::BufRead;
-use std::str::Lines;
 
 mod modelini;
 
@@ -26,13 +22,9 @@ impl Mojo {
         println!("HELLO FROM Mojo::load('{}')", p.as_ref().to_path_buf().into_os_string().to_str().unwrap());
         let model_ini_path = p.as_ref().join("model.ini");
         println!("modelini: '{}'", model_ini_path.clone().into_os_string().to_str().unwrap());
-        let modelini = modelini::ModelIni::parseFile(model_ini_path)?;
+        let _modelini = modelini::ModelIni::parse(model_ini_path)?;
 
         Ok(Mojo{})
-    }
-
-    fn read() {
-
     }
 
     pub fn predict_binomial(&self, _params: HashMap<String, String>) -> io::Result<bool>{

@@ -24,5 +24,5 @@ fn tocsv<P: AsRef<Path>>(path: P) {
 }
 
 fn main() {
-    let mojo = Mojo::load("/home/pk/h2o/h2o-mojo-java/src/test/resources/gbm_v1.00_names.mojo").unwrap();
+    let _mojo = Mojo::load("/home/pk/h2o/h2o-mojo-java/src/test/resources/gbm_v1.00_names.mojo").unwrap();
 }
