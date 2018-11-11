@@ -5,7 +5,7 @@ use rustmojo::mojo::Mojo;
 use std::collections::HashMap;
 
 fn main() {
-    let mojo = Mojo::load("/home/pk/h2o/h2o-mojo-java/src/test/resources/gbm_v1.00_names.mojo").unwrap();
+    let mojo = Mojo::load("data/gbm_v1.00_names.mojo").unwrap();
     let row: HashMap<&str,&str> = [
         ("AGE", "68"),
         ("RACE", "2"),
