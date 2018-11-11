@@ -1,5 +1,4 @@
-#[macro_use]
-extern crate serde_derive;
+extern crate rustmojo;
 
 use rustmojo::mojo::Mojo;
 use std::collections::HashMap;

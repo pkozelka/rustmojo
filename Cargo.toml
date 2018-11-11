@@ -4,5 +4,3 @@ version = "0.1.0"
 authors = ["Petr Kozelka <pkozelka@gmail.com>"]
 
 [dependencies]
-chrono = "0.4"
-time = "0.1.40"
