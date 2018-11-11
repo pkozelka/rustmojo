@@ -14,7 +14,7 @@ fn main() {
     println!("--------------");
     let prediction = mojo.predict_binomial(row).unwrap();
     println!("--------------");
-    println!("Prediction: index={}, label='{}'", prediction.labelIndex, prediction.label);
+    println!("Prediction: index={}, label='{}'", prediction.label_index, prediction.label);
     println!("P0: {}", prediction.p0);
     println!("P1: {}", prediction.p1);
 }

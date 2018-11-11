@@ -10,7 +10,7 @@ pub struct Mojo {
 }
 
 pub struct BinomialPrediction {
-    pub labelIndex: u32,
+    pub label_index: u32,
     pub label: String,
     pub p0: f64,
     pub p1: f64,
@@ -34,10 +34,10 @@ impl Mojo {
         Ok(Mojo{})
     }
 
-    pub fn predict_binomial(&self, row: HashMap<&str, &str>) -> io::Result<BinomialPrediction>{
+    pub fn predict_binomial(&self, _row: HashMap<&str, &str>) -> io::Result<BinomialPrediction>{
 //        Err(Error::new(io::ErrorKind::WriteZero, "not implemented"))
         Ok(BinomialPrediction{
-            labelIndex: 0,
+            label_index: 0,
             label: String::from("DUMMY"),
             p0: 0.5,
             p1: 0.5,

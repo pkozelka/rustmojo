@@ -8,7 +8,7 @@ use std::io::Result;
 use std::path::Path;
 
 pub struct ModelIni {
-    sections: HashMap<String, Vec<String>>,
+    _sections: HashMap<String, Vec<String>>,
     pub s_info: HashMap<String, String>,
     pub info: ParsedGenericInfo,
 }
@@ -25,7 +25,7 @@ impl ModelIni {
             None => Err(Error::new(ErrorKind::InvalidData, "Section [info] was not found"))
         }?;
         Ok(ModelIni{
-            sections: sections,
+            _sections: sections,
             info: ParsedGenericInfo::from(&s_info)?,
             s_info: s_info,
         })
