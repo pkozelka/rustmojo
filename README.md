@@ -1,4 +1,4 @@
-# rustmojo
+# rustmojo [![Build Status](https://travis-ci.org/pkozelka/rustmojo.png)](https://travis-ci.org/pkozelka/rustmojo)
 
 Status: experimental
 
