@@ -34,11 +34,39 @@ impl Mojo {
         Ok(Mojo{})
     }
 
-    pub fn predict_binomial(&self, _row: HashMap<&str, &str>) -> io::Result<BinomialPrediction>{
+    pub fn predict_binomial(&self, _row: Vec<f64>) -> io::Result<BinomialPrediction>{
+        Ok(BinomialPrediction{
+            label_index: 0,
+            label: String::from("RAW_DUMMY"),
+            p0: 0.5,
+            p1: 0.5,
+        })
+    }
+
+    pub fn predict_binomial_easy(&self, _row: HashMap<&str, &str>) -> io::Result<BinomialPrediction>{
+        /*
+        TODO:
+        - preamble:
+            - EasyPredictModelWrapper::validateModelCategory
+            - predict
+                - EasyPredictModelWrapper::fillRawData: convert row to vector of doubles
+                - preds = GbmMojoModel::score0(raw)
+                    - GbmMojoModel::scoreAllTrees
+                        - clear preds (no cummulation)
+                        - for i in trees_per_group
+                            - for j in tree_in_group(i)
+                                - preds[k] + SharedTreeMojoModel::scoreTreeV(tree, raw)
+                    - switch by distributionFamily:
+                        - bernoulli, modified_huber
+                        - multinomial
+                    - if MojoModel::balanceClasses then MojoModel::correctProbabilities
+                    - MojoModel::getPrediction
+                - compute second value (1-first)
+        */
 //        Err(Error::new(io::ErrorKind::WriteZero, "not implemented"))
         Ok(BinomialPrediction{
             label_index: 0,
-            label: String::from("DUMMY"),
+            label: String::from("EASY_DUMMY"),
             p0: 0.5,
             p1: 0.5,
         })

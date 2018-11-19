@@ -12,7 +12,7 @@ fn main() {
     ].iter().cloned().collect();
 
     println!("--------------");
-    let prediction = mojo.predict_binomial(row).unwrap();
+    let prediction = mojo.predict_binomial_easy(row).unwrap();
     println!("--------------");
     println!("Prediction: index={}, label='{}'", prediction.label_index, prediction.label);
     println!("P0: {}", prediction.p0);
