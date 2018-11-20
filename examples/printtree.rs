@@ -6,6 +6,7 @@ use this::mojoreader::SplitValue;
 use this::mojoreader::SubNode;
 use std::fs::File;
 use std::io::Read;
+use std::io;
 
 fn treeprint(indent: &str, node: &SubNode) {
     match node {
@@ -41,15 +42,12 @@ fn main() {
     let mut file= File::open("/home/pk/h2o/h2o-mojo-java/src/test/resources/gbm_v1.00_names.mojo/trees/t00_000.bin").unwrap();
     let size = file.metadata().unwrap().len();
     println!("file size is {}", size);
-    let mut buf = Vec::new();
-    let bytes = file.read_to_end(&mut buf).unwrap();
-    let mut reader = MojoReader::new(MojoInformation::new());
-    let root = reader.read_node(&mut buf.iter()).expect("ERROR");
+    let root = read_file(&mut file).expect("ERROR");
     match root {
         SubNode::Leaf(value) => println!("leaf value is {}", value),
         SubNode::NestedNode(_) => println!("subnode")
     }
-    println!("byte count is {}", bytes);
+    println!("byte count is {}", size);
 
     treeprint("", &root);
 
@@ -60,4 +58,11 @@ fn main() {
         position += 1;
     }
 */
+}
+
+fn read_file(file: &mut File) -> io::Result<SubNode> {
+    let mut buf = Vec::new();
+    let bytes = file.read_to_end(&mut buf)?;
+    let mut reader = MojoReader::new(MojoInformation::new());
+    reader.read_node(&mut buf.iter())
 }
