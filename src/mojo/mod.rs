@@ -4,6 +4,8 @@ use std::io::Error;
 use std::path::Path;
 
 mod modelini;
+mod gbm;
+mod treemodel;
 
 pub struct Mojo {
 
@@ -34,7 +36,8 @@ impl Mojo {
         Ok(Mojo{})
     }
 
-    pub fn predict_binomial(&self, _row: Vec<f64>) -> io::Result<BinomialPrediction>{
+    pub fn predict(&self, row: Vec<f64>) -> io::Result<BinomialPrediction>{
+        let _preds = gbm::score(&row, 0f64)?;
         Ok(BinomialPrediction{
             label_index: 0,
             label: String::from("RAW_DUMMY"),
@@ -60,7 +63,7 @@ impl Mojo {
                         - bernoulli, modified_huber
                         - multinomial
                     - if MojoModel::balanceClasses then MojoModel::correctProbabilities
-                    - MojoModel::getPrediction
+                    - MojoModel::getPrediction(preds, row, ...)
                 - compute second value (1-first)
         */
 //        Err(Error::new(io::ErrorKind::WriteZero, "not implemented"))

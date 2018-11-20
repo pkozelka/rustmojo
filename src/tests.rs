@@ -24,11 +24,11 @@ fn test_binomial_easy() {
 }
 
 #[test]
-fn test_binomial_raw() {
+fn test_raw() {
     let mojo = Mojo::load("data/gbm_v1.00_names.mojo").unwrap();
     let row = vec![68f64, 2f64, 2f64];
 
-    let prediction = mojo.predict_binomial(row).unwrap();
+    let prediction = mojo.predict(row).unwrap();
     assert_eq!(0.5, prediction.p0);
     assert_eq!(0.5, prediction.p1);
     assert_eq!("RAW_DUMMY", prediction.label);
