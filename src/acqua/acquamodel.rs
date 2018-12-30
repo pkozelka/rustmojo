@@ -16,10 +16,16 @@ pub enum Comparison {
     BitsetContains(Box<Bitset>),
 }
 
+pub enum NoNumberHandling {
+    None,
+    AsTrue,
+    AsFalse
+}
+
 pub struct Condition {
     pub comparison: Comparison,
-    pub is_na: bool,
     pub invert: bool,
+    pub nan: NoNumberHandling,
 }
 
 pub struct DecisionNode {

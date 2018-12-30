@@ -8,6 +8,7 @@ use this::acqua::acquamodel::Comparison;
 use this::acqua::acquamodel::Node;
 use this::mojoreader::MojoInformation;
 use this::mojoreader::MojoReader;
+use this::acqua::acquamodel::NoNumberHandling;
 
 fn treeprint(node: &Node) {
     println!("Tree:");
@@ -27,25 +28,30 @@ fn treeprint_level(indent: usize, node: &Node) {
             println!("{}", value)
         },
         Node::DecisionNode(decision) => {
-            let mut ifline = format!("Col{}", decision.column.get_column_no());
+            let col_name = format!("Col{}", decision.column.get_column_no());
+            let mut ifline = String::new();
+            match decision.condition.nan {
+                NoNumberHandling::None => {},
+                NoNumberHandling::AsTrue => ifline.push_str(&format!("{}.isNAN() || ", col_name)),
+                NoNumberHandling::AsFalse => ifline.push_str(&format!("!{}.isNAN() && ", col_name)),
+            }
             match decision.condition.comparison {
-                Comparison::None => {
-                    ifline.push_str(" :true");
-                },
+                Comparison::None => {},
                 Comparison::IsLessThan(f) => {
-                    ifline.push_str(&format!(" < {}", f));
+                    ifline.push_str(&col_name);
+                    if decision.condition.invert {
+                        ifline.push_str(&format!(" >= {}", f));
+                    } else {
+                        ifline.push_str(&format!(" < {}", f));
+                    }
                 },
                 Comparison::BitsetContains(_) => {
-                    ifline.push_str(" is in set(...todo...)");
+                    if (decision.condition.invert) {
+                        ifline.push('!');
+                    }
+                    ifline.push_str(&format!("set(...).contains({})", col_name));
                 },
             };
-            if decision.condition.is_na {
-                ifline.push_str(" || isNA")
-            }
-            if decision.condition.invert {
-                ifline.insert_str(0, "!(");
-                ifline.push_str(")");
-            }
             println!("if {}", ifline);
             print_indent(indent);
             println!("then");

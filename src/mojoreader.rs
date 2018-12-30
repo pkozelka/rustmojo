@@ -115,7 +115,7 @@ impl MojoReader {
         if let NaSplitDir::NAvsREST = dir {
             condition = Condition{
                 comparison: Comparison::None,
-                is_na: false,
+                nan: NoNumberHandling::AsTrue,
                 invert: false
             };
         } else {
@@ -123,7 +123,7 @@ impl MojoReader {
                 SplitValueType::Number => {
                     Condition {
                         comparison: Comparison::IsLessThan(read_f32(input)?),
-                        is_na: false,
+                        nan: NoNumberHandling::AsFalse,
                         invert: false
                     }
                 },
@@ -142,7 +142,7 @@ impl MojoReader {
                     println!("--");
                     Condition {
                         comparison: Comparison::BitsetContains(Box::new(MojoBitset::new(/*todo*/))),
-                        is_na: false,
+                        nan: NoNumberHandling::None,
                         invert: false
                     }
                 },
@@ -150,7 +150,7 @@ impl MojoReader {
                     let _bits = read_u32(input)?;
                     Condition {
                         comparison: Comparison::BitsetContains(Box::new(MojoBitset::new(/*todo*/))),
-                        is_na: false,
+                        nan: NoNumberHandling::None,
                         invert: false
                     }
                 },
