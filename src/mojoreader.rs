@@ -9,12 +9,6 @@ use acqua::acquamodel::Col;
 use mojoflags::MojoFlags;
 use mojoflags::SplitValueType;
 
-pub enum SplitValue {
-    IsNotANumber,
-    IsLessOrEqualTo(f32),
-    IsPresentInSet(u32 /*TODO: &bitset!*/),
-}
-
 enum NaSplitDir {
     None,
     NAvsREST,
@@ -22,24 +16,6 @@ enum NaSplitDir {
     NARight,
     Left,
     Right,
-}
-
-pub enum SubNode {
-    Leaf(f32),
-    NestedNode(Box<MtrNode>)
-}
-
-pub struct MtrNode {
-//    address: u32,
-//    node_type: u8,
-//    split_dir: u8,
-    pub split_column_id: u16,
-    pub split_value: SplitValue,
-
-    pub left: SubNode,
-
-//    right_node_address: u32,
-    pub right:SubNode,
 }
 
 pub struct MojoInformation {
@@ -116,84 +92,6 @@ impl MojoReader {
         MojoReader{info: info}
     }
 
-    pub fn read_node(&mut self, input: &mut Iter<u8>) -> Result<SubNode, Error> {
-        let flagbyte = read_u8(input)?;
-        let nodeflags = MojoFlags::new(flagbyte)?;
-        println!("nodeflags[{:02X}]: left is leaf: {}, right is leaf: {}, offset_size = {}",
-                 flagbyte,
-                 nodeflags.left_node_is_leaf,
-                 nodeflags.right_node_is_leaf,
-                 nodeflags.offset_size);
-        let split_column_id = read_u16(input)?;
-        println!("field_no {}", split_column_id);
-
-        if split_column_id == 0xFFFF {
-            return Ok(SubNode::Leaf(read_f32(input)?))
-        }
-
-        let dir = read_direction(input)?;
-//        println!("direction: {}", dir);
-
-        let split_value: SplitValue;
-
-        if let NaSplitDir::NAvsREST = dir {
-            split_value = SplitValue::IsNotANumber;
-        } else {
-            split_value = match nodeflags.split_value_type {
-                SplitValueType::Number => {
-                    SplitValue::IsLessOrEqualTo(read_f32(input)?)
-                },
-                SplitValueType::Bitset => {
-                    let bit_offset = read_u16(input)?;
-                    if self.info.mojo_version < 130 {
-                        let nbytes = read_u16(input)?;
-                        println!("bitset[{},{}]", bit_offset, nbytes);
-                        skip(input, nbytes)?;
-                    } else {
-                        let nbits = read_u32(input)?;
-                        let nbytes = bits_to_bytes(nbits);
-                        println!("bitset[{},{}]", bit_offset, nbytes);
-                        skip(input, nbytes as u16)?;
-                    }
-                    println!("--");
-                    SplitValue::IsPresentInSet(0 /*todo!*/)
-                },
-                SplitValueType::Bitset32 => {
-                    let bits = read_u32(input)?;
-                    SplitValue::IsPresentInSet(bits /*todo!*/)
-                },
-            };
-        };
-
-        let left_node = if nodeflags.left_node_is_leaf {
-            let leaf = read_f32(input)?;
-            println!("left leaf: {}", leaf);
-            SubNode::Leaf(leaf)
-        } else {
-            println!("offset");
-            skip(input, nodeflags.offset_size as u16)?;
-            println!("left node");
-            self.read_node(input)?
-        };
-
-        let right_node = if nodeflags.right_node_is_leaf {
-            let leaf = read_f32(input)?;
-            println!("right leaf: {}", leaf);
-            SubNode::Leaf(leaf)
-        } else {
-            println!("right node");
-            self.read_node(input)?
-        };
-
-        let node = MtrNode{
-            split_column_id,
-            split_value: (split_value),
-            left: (left_node),
-            right: (right_node),
-        };
-        Ok(SubNode::NestedNode(Box::new(node)))
-    }
-
     pub fn read_tree(&mut self, input: &mut Iter<u8>) -> Result<Node, Error> {
         let flagbyte = read_u8(input)?;
         let nodeflags = MojoFlags::new(flagbyte)?;
@@ -249,7 +147,7 @@ impl MojoReader {
                     }
                 },
                 SplitValueType::Bitset32 => {
-                    let bits = read_u32(input)?;
+                    let _bits = read_u32(input)?;
                     Condition {
                         comparison: Comparison::BitsetContains(Box::new(MojoBitset::new(/*todo*/))),
                         is_na: false,
@@ -297,7 +195,7 @@ impl MojoBitset {
 }
 
 impl Bitset for MojoBitset {
-    fn get(&self, bit: i32) -> bool {
+    fn get(&self, _bit: i32) -> bool {
         unimplemented!()
     }
 }

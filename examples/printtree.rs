@@ -20,7 +20,7 @@ fn treeprint(indent: &str, node: &Node) {
                     String::from("true")
                 },
                 Comparison::IsLessThan(f) => {
-                    format!("is < {}", f)
+                    format!("< {}", f)
                 },
                 Comparison::BitsetContains(_) => {
                     String::from("is in set(...todo...)")

@@ -1,7 +1,8 @@
 use std::io;
-use mojoreader::SubNode;
 use std::io::Error;
 use std::io::ErrorKind;
+
+use acqua::acquamodel::Node;
 
 pub fn score_all_trees(row: &Vec<f64>) -> io::Result<Vec<f64>> {
     let mut preds = Vec::new();
@@ -20,11 +21,11 @@ pub fn score_all_trees(row: &Vec<f64>) -> io::Result<Vec<f64>> {
     Ok(preds)
 }
 
-fn get_tree(_i: i32,_j: i32) -> io::Result<SubNode> {
+fn get_tree(_i: i32,_j: i32) -> io::Result<Node> {
     // todo
     Err(Error::new(ErrorKind::NotFound, "Not implemented: get_tree"))
 }
 
-fn score_tree(_tree: &SubNode, _row: &Vec<f64>) -> io::Result<f64> {
+fn score_tree(_tree: &Node, _row: &Vec<f64>) -> io::Result<f64> {
     Err(Error::new(ErrorKind::NotFound, "Not implemented: score_tree"))
 }

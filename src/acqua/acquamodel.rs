@@ -62,19 +62,3 @@ impl Column for Col {
         self.column_no
     }
 }
-
-
-fn main() {
-    let col1 = Box::new(Col::new(1234));
-    let cond = Condition {
-        comparison: Comparison::IsLessThan(3.14),
-        is_na: false,
-        invert: false
-    };
-    let tree = Node::DecisionNode(DecisionNode::new(col1, cond, Node::ValueNode(5.3), Node::ValueNode(1.2)));
-
-    match tree {
-        Node::DecisionNode(d) => println!("Hi {}", d.column.get_column_no()),
-        Node::ValueNode(n) => println!("Number = {}", n)
-    }
-}
