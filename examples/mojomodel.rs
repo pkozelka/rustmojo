@@ -10,17 +10,21 @@ pub trait Column {
     fn get_column_no(&self) -> i32;
 }
 
-enum Condition {
-    IsNotAssigned(),
+enum Comparison {
+    None(),
     IsLessThan(f32),
-    IsLessThanOrNA(f32),
-    BitsetContains(Box<Bitset>)
+    BitsetContains(Box<Bitset>),
+}
+
+struct Condition {
+    comparison: Comparison,
+    is_na: bool,
+    invert: bool,
 }
 
 struct DecisionNode {
     column: Box<Column>,
     condition: Condition,
-    invert: bool,
     do_then: Box<Node>,
     do_else: Box<Node>,
 }
@@ -31,11 +35,10 @@ enum Node {
 }
 
 impl DecisionNode {
-    fn new(column: Box<Column>, condition: Condition, invert: bool, do_then: Node, do_else: Node) -> DecisionNode {
+    fn new(column: Box<Column>, condition: Condition, do_then: Node, do_else: Node) -> DecisionNode {
         DecisionNode {
             column,
             condition,
-            invert,
             do_then: Box::new(do_then),
             do_else: Box::new(do_else)
         }
@@ -62,12 +65,16 @@ impl Column for Col {
 
 
 fn main() {
-    let col1 = Box::new(Col::new(1));
-    let cond = Condition::IsNotAssigned();
-    let tree = Node::DecisionNode(DecisionNode::new(col1, cond, false, Node::ValueNode(5.3), Node::ValueNode(1.2)));
+    let col1 = Box::new(Col::new(1234));
+    let cond = Condition {
+        comparison: Comparison::IsLessThan(3.14),
+        is_na: false,
+        invert: false
+    };
+    let tree = Node::DecisionNode(DecisionNode::new(col1, cond, Node::ValueNode(5.3), Node::ValueNode(1.2)));
 
     match tree {
-        Node::DecisionNode(d) => println!("Hi {}", d.invert),
+        Node::DecisionNode(d) => println!("Hi {}", d.column.get_column_no()),
         Node::ValueNode(n) => println!("Number = {}", n)
     }
 }
