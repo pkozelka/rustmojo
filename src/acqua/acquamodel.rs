@@ -22,14 +22,14 @@ struct Condition {
     invert: bool,
 }
 
-struct DecisionNode {
+pub struct DecisionNode {
     column: Box<Column>,
     condition: Condition,
     do_then: Box<Node>,
     do_else: Box<Node>,
 }
 
-enum Node {
+pub enum Node {
     ValueNode(f32),
     DecisionNode(DecisionNode)
 }

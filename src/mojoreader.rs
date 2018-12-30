@@ -1,10 +1,12 @@
 extern crate std;
 
-use mojoflags::MojoFlags;
-use mojoflags::SplitValueType;
 use std::io::Error;
 use std::io::ErrorKind;
 use std::slice::Iter;
+
+use acqua::acquamodel::*;
+use mojoflags::MojoFlags;
+use mojoflags::SplitValueType;
 
 pub enum SplitValue {
     IsNotANumber,
@@ -183,11 +185,33 @@ impl MojoReader {
         };
 
         let node = MtrNode{
-            split_column_id: split_column_id,
+            split_column_id,
             split_value: (split_value),
             left: (left_node),
             right: (right_node),
         };
         Ok(SubNode::NestedNode(Box::new(node)))
+    }
+
+    pub fn read_tree(&mut self, input: &mut Iter<u8>) -> Result<Node, Error> {
+        let flagbyte = read_u8(input)?;
+        let nodeflags = MojoFlags::new(flagbyte)?;
+        println!("nodeflags[{:02X}]: left is leaf: {}, right is leaf: {}, offset_size = {}",
+                 flagbyte,
+                 nodeflags.left_node_is_leaf,
+                 nodeflags.right_node_is_leaf,
+                 nodeflags.offset_size);
+        let split_column_id = read_u16(input)?;
+        println!("field_no {}", split_column_id);
+
+        if split_column_id == 0xFFFF {
+            return Ok(Node::ValueNode(read_f32(input)?))
+        }
+
+        let dir = read_direction(input)?;
+//        println!("direction: {:?}", dir);
+
+
+        Err(Error::new(ErrorKind::Interrupted, "Not implemented"))
     }
 }
