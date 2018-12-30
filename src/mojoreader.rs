@@ -5,6 +5,7 @@ use std::io::ErrorKind;
 use std::slice::Iter;
 
 use acqua::acquamodel::*;
+use acqua::acquamodel::Col;
 use mojoflags::MojoFlags;
 use mojoflags::SplitValueType;
 
@@ -211,7 +212,92 @@ impl MojoReader {
         let dir = read_direction(input)?;
 //        println!("direction: {:?}", dir);
 
+        let condition: Condition;
 
-        Err(Error::new(ErrorKind::Interrupted, "Not implemented"))
+        if let NaSplitDir::NAvsREST = dir {
+            condition = Condition{
+                comparison: Comparison::None,
+                is_na: false,
+                invert: false
+            };
+        } else {
+            condition = match nodeflags.split_value_type {
+                SplitValueType::Number => {
+                    Condition {
+                        comparison: Comparison::IsLessThan(read_f32(input)?),
+                        is_na: false,
+                        invert: false
+                    }
+                },
+                SplitValueType::Bitset => {
+                    let bit_offset = read_u16(input)?;
+                    if self.info.mojo_version < 130 {
+                        let nbytes = read_u16(input)?;
+                        println!("bitset[{},{}]", bit_offset, nbytes);
+                        skip(input, nbytes)?;
+                    } else {
+                        let nbits = read_u32(input)?;
+                        let nbytes = bits_to_bytes(nbits);
+                        println!("bitset[{},{}]", bit_offset, nbytes);
+                        skip(input, nbytes as u16)?;
+                    }
+                    println!("--");
+                    Condition {
+                        comparison: Comparison::BitsetContains(Box::new(MojoBitset::new(/*todo*/))),
+                        is_na: false,
+                        invert: false
+                    }
+                },
+                SplitValueType::Bitset32 => {
+                    let bits = read_u32(input)?;
+                    Condition {
+                        comparison: Comparison::BitsetContains(Box::new(MojoBitset::new(/*todo*/))),
+                        is_na: false,
+                        invert: false
+                    }
+                },
+            };
+        };
+
+        let left_node = if nodeflags.left_node_is_leaf {
+            let leaf = read_f32(input)?;
+            println!("left leaf: {}", leaf);
+            Node::ValueNode(leaf)
+        } else {
+            println!("offset");
+            skip(input, nodeflags.offset_size as u16)?;
+            println!("left node");
+            self.read_tree(input)?
+        };
+
+        let right_node = if nodeflags.right_node_is_leaf {
+            let leaf = read_f32(input)?;
+            println!("right leaf: {}", leaf);
+            Node::ValueNode(leaf)
+        } else {
+            println!("right node");
+            self.read_tree(input)?
+        };
+
+        Ok(Node::DecisionNode(DecisionNode{
+            column: Box::new(Col::new(split_column_id)),
+            condition,
+            do_then: Box::new(left_node),
+            do_else: Box::new(right_node)
+        }))
+    }
+}
+
+pub struct MojoBitset {}
+
+impl MojoBitset {
+    fn new() -> MojoBitset {
+        MojoBitset{}
+    }
+}
+
+impl Bitset for MojoBitset {
+    fn get(&self, bit: i32) -> bool {
+        unimplemented!()
     }
 }

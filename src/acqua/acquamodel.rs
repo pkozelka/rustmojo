@@ -7,26 +7,26 @@ pub trait Bitset {
 }
 
 pub trait Column {
-    fn get_column_no(&self) -> i32;
+    fn get_column_no(&self) -> u16;
 }
 
-enum Comparison {
-    None(),
+pub enum Comparison {
+    None,
     IsLessThan(f32),
     BitsetContains(Box<Bitset>),
 }
 
-struct Condition {
-    comparison: Comparison,
-    is_na: bool,
-    invert: bool,
+pub struct Condition {
+    pub comparison: Comparison,
+    pub is_na: bool,
+    pub invert: bool,
 }
 
 pub struct DecisionNode {
-    column: Box<Column>,
-    condition: Condition,
-    do_then: Box<Node>,
-    do_else: Box<Node>,
+    pub column: Box<Column>,
+    pub condition: Condition,
+    pub do_then: Box<Node>,
+    pub do_else: Box<Node>,
 }
 
 pub enum Node {
@@ -45,12 +45,12 @@ impl DecisionNode {
     }
 }
 
-struct Col {
-    column_no: i32
+pub struct Col {
+    column_no: u16
 }
 
 impl Col {
-    fn new(column_no: i32) -> Self {
+    pub fn new(column_no: u16) -> Self {
         Col {
             column_no
         }
@@ -58,7 +58,7 @@ impl Col {
 }
 
 impl Column for Col {
-    fn get_column_no(&self) -> i32 {
+    fn get_column_no(&self) -> u16 {
         self.column_no
     }
 }
