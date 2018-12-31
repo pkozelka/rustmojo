@@ -33,52 +33,65 @@ pub struct MojoReader {
     info: MojoInformation,
 }
 
-fn read_u8(input: &mut Iter<u8>) -> Result<u8, Error> {
-    match input.next() {
-        None => Err(Error::new(ErrorKind::UnexpectedEof, "oh no")),
-        Some(&byte) => {
-            println!(".... {:02X}", byte);
-            Ok(byte)
+pub struct ByteArrayReader<'a>  {
+    input: &'a mut Iter<'a, u8>
+}
+
+impl <'a> ByteArrayReader<'a> {
+
+    pub fn new(input: &'a mut Iter<'a, u8>) -> ByteArrayReader<'a> {
+        ByteArrayReader {
+            input
         }
     }
-}
 
-fn read_u16(input: &mut Iter<u8>) -> Result<u16, Error> {
-    let l: u16 = read_u8(input)? as u16;
-    let h: u16 = read_u8(input)? as u16;
-    Ok((h << 8) + l)
-}
-
-fn read_u32(input: &mut Iter<u8>) -> Result<u32, Error> {
-    let l: u32 = read_u16(input)? as u32;
-    let h: u32 = read_u16(input)? as u32;
-    Ok((h << 16) + l)
-}
-
-fn read_f32(input: &mut Iter<u8>) -> Result<f32, Error> {
-    let value = read_u32(input)?;
-    let num: f32 = unsafe { std::mem::transmute(value)};
-    Ok(num)
-}
-
-fn skip(input: &mut Iter<u8>, nbytes: u16) -> Result<(), Error> {   
-    for _ in 0..nbytes {
-        read_u8(input)?;
+    fn read_u8(&mut self) -> Result<u8, Error> {
+        match self.input.next() {
+            None => Err(Error::new(ErrorKind::UnexpectedEof, "oh no")),
+            Some(&byte) => {
+                println!(".... {:02X}", byte);
+                Ok(byte)
+            }
+        }
     }
-    Ok(())
-}
 
-fn read_direction(input: &mut Iter<u8>) -> Result<NaSplitDir, Error>{
-    let dirbyte = read_u8(input)?;
-    println!("dirbyte: {}", dirbyte);
-    match dirbyte {
-        0 => Ok(NaSplitDir::None),
-        1 => Ok(NaSplitDir::NAvsREST),
-        2 => Ok(NaSplitDir::NALeft),
-        3 => Ok(NaSplitDir::NARight),
-        4 => Ok(NaSplitDir::Left),
-        5 => Ok(NaSplitDir::Right),
-        _ => Err(Error::new(ErrorKind::InvalidData, "Invalid direction"))
+    fn read_u16(&mut self) -> Result<u16, Error> {
+        let l: u16 = self.read_u8()? as u16;
+        let h: u16 = self.read_u8()? as u16;
+        Ok((h << 8) + l)
+    }
+
+    fn read_u32(&mut self) -> Result<u32, Error> {
+        let l: u32 = self.read_u16()? as u32;
+        let h: u32 = self.read_u16()? as u32;
+        Ok((h << 16) + l)
+    }
+
+    fn read_f32(&mut self) -> Result<f32, Error> {
+        let value = self.read_u32()?;
+        let num: f32 = unsafe { std::mem::transmute(value) };
+        Ok(num)
+    }
+
+    fn skip(&mut self, nbytes: u16) -> Result<(), Error> {
+        for _ in 0..nbytes {
+            self.read_u8()?;
+        }
+        Ok(())
+    }
+
+    fn read_direction(&mut self) -> Result<NaSplitDir, Error> {
+        let dirbyte = self.read_u8()?;
+        println!("dirbyte: {}", dirbyte);
+        match dirbyte {
+            0 => Ok(NaSplitDir::None),
+            1 => Ok(NaSplitDir::NAvsREST),
+            2 => Ok(NaSplitDir::NALeft),
+            3 => Ok(NaSplitDir::NARight),
+            4 => Ok(NaSplitDir::Left),
+            5 => Ok(NaSplitDir::Right),
+            _ => Err(Error::new(ErrorKind::InvalidData, "Invalid direction"))
+        }
     }
 }
 
@@ -92,22 +105,23 @@ impl MojoReader {
         MojoReader{info: info}
     }
 
-    pub fn read_tree(&mut self, input: &mut Iter<u8>) -> Result<Node, Error> {
-        let flagbyte = read_u8(input)?;
+    pub fn read_tree(&mut self, ba: &mut ByteArrayReader) -> Result<Node, Error> {
+
+        let flagbyte = ba.read_u8()?;
         let nodeflags = MojoFlags::new(flagbyte)?;
         println!("nodeflags[{:02X}]: left is leaf: {}, right is leaf: {}, offset_size = {}",
                  flagbyte,
                  nodeflags.left_node_is_leaf,
                  nodeflags.right_node_is_leaf,
                  nodeflags.offset_size);
-        let split_column_id = read_u16(input)?;
+        let split_column_id = ba.read_u16()?;
         println!("field_no {}", split_column_id);
 
         if split_column_id == 0xFFFF {
-            return Ok(Node::ValueNode(read_f32(input)?))
+            return Ok(Node::ValueNode(ba.read_f32()?))
         }
 
-        let dir = read_direction(input)?;
+        let dir = ba.read_direction()?;
 //        println!("direction: {:?}", dir);
 
         let condition: Condition;
@@ -122,22 +136,22 @@ impl MojoReader {
             condition = match nodeflags.split_value_type {
                 SplitValueType::Number => {
                     Condition {
-                        comparison: Comparison::IsLessThan(read_f32(input)?),
+                        comparison: Comparison::IsLessThan(ba.read_f32()?),
                         nan: NoNumberHandling::AsFalse,
                         invert: false
                     }
                 },
                 SplitValueType::Bitset => {
-                    let bit_offset = read_u16(input)?;
+                    let bit_offset = ba.read_u16()?;
                     if self.info.mojo_version < 130 {
-                        let nbytes = read_u16(input)?;
+                        let nbytes = ba.read_u16()?;
                         println!("bitset[{},{}]", bit_offset, nbytes);
-                        skip(input, nbytes)?;
+                        ba.skip(nbytes)?;
                     } else {
-                        let nbits = read_u32(input)?;
+                        let nbits = ba.read_u32()?;
                         let nbytes = bits_to_bytes(nbits);
                         println!("bitset[{},{}]", bit_offset, nbytes);
-                        skip(input, nbytes as u16)?;
+                        ba.skip(nbytes as u16)?;
                     }
                     println!("--");
                     Condition {
@@ -147,7 +161,7 @@ impl MojoReader {
                     }
                 },
                 SplitValueType::Bitset32 => {
-                    let _bits = read_u32(input)?;
+                    let _bits = ba.read_u32()?;
                     Condition {
                         comparison: Comparison::BitsetContains(Box::new(MojoBitset::new(/*todo*/))),
                         nan: NoNumberHandling::None,
@@ -158,23 +172,23 @@ impl MojoReader {
         };
 
         let left_node = if nodeflags.left_node_is_leaf {
-            let leaf = read_f32(input)?;
+            let leaf = ba.read_f32()?;
             println!("left leaf: {}", leaf);
             Node::ValueNode(leaf)
         } else {
             println!("offset");
-            skip(input, nodeflags.offset_size as u16)?;
+            ba.skip(nodeflags.offset_size as u16)?;
             println!("left node");
-            self.read_tree(input)?
+            self.read_tree(ba)?
         };
 
         let right_node = if nodeflags.right_node_is_leaf {
-            let leaf = read_f32(input)?;
+            let leaf = ba.read_f32()?;
             println!("right leaf: {}", leaf);
             Node::ValueNode(leaf)
         } else {
             println!("right node");
-            self.read_tree(input)?
+            self.read_tree(ba)?
         };
 
         Ok(Node::DecisionNode(DecisionNode{

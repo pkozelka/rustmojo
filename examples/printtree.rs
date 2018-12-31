@@ -9,6 +9,7 @@ use this::acqua::acquamodel::Node;
 use this::mojoreader::MojoInformation;
 use this::mojoreader::MojoReader;
 use this::acqua::acquamodel::NoNumberHandling;
+use this::mojoreader::ByteArrayReader;
 
 fn treeprint(node: &Node) {
     println!("Tree:");
@@ -46,7 +47,7 @@ fn treeprint_level(indent: usize, node: &Node) {
                     }
                 },
                 Comparison::BitsetContains(_) => {
-                    if (decision.condition.invert) {
+                    if decision.condition.invert {
                         ifline.push('!');
                     }
                     ifline.push_str(&format!("set(...).contains({})", col_name));
@@ -67,7 +68,9 @@ fn read_file(file: &mut File) -> io::Result<Node> {
     let mut buf = Vec::new();
     file.read_to_end(&mut buf)?;
     let mut reader = MojoReader::new(MojoInformation::new());
-    reader.read_tree(&mut buf.iter())
+    let input = &mut buf.iter();
+    let ba = &mut ByteArrayReader::new(input);
+    reader.read_tree(ba)
 }
 
 fn main() {

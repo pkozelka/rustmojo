@@ -7,12 +7,14 @@ use std::io::Read;
 use this::acqua::acquamodel;
 use this::mojoreader::MojoInformation;
 use this::mojoreader::MojoReader;
+use this::mojoreader::ByteArrayReader;
 
 fn read_file(file: &mut File) -> io::Result<acquamodel::Node> {
     let mut buf = Vec::new();
     file.read_to_end(&mut buf)?;
     let mut reader = MojoReader::new(MojoInformation::new());
-    reader.read_tree(&mut buf.iter())
+    let mut ba = &mut ByteArrayReader::new(&mut buf.iter());
+    reader.read_tree(ba)
 }
 
 fn main() {
