@@ -41,6 +41,7 @@ pub enum Node {
 }
 
 impl DecisionNode {
+    #[allow(dead_code)]
     fn new(column: Box<Column>, condition: Condition, do_then: Node, do_else: Node) -> DecisionNode {
         DecisionNode {
             column,

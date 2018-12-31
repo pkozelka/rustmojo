@@ -1,15 +1,12 @@
 extern crate rustmojo as this;
 
 use std::fs::File;
-use std::io;
-use std::io::Read;
 
 use this::acqua::acquamodel::Comparison;
 use this::acqua::acquamodel::Node;
-use this::mojoreader::MojoInformation;
 use this::mojoreader::MojoReader;
 use this::acqua::acquamodel::NoNumberHandling;
-use this::mojoreader::ByteArrayReader;
+use this::mojoreader::MojoInformation;
 
 fn treeprint(node: &Node) {
     println!("Tree:");
@@ -64,20 +61,12 @@ fn treeprint_level(indent: usize, node: &Node) {
     }
 }
 
-fn read_file(file: &mut File) -> io::Result<Node> {
-    let mut buf = Vec::new();
-    file.read_to_end(&mut buf)?;
-    let mut reader = MojoReader::new(MojoInformation::new());
-    let input = &mut buf.iter();
-    let ba = &mut ByteArrayReader::new(input);
-    reader.read_tree(ba)
-}
-
 fn main() {
     let mut file= File::open("/home/pk/h2o/h2o-mojo-java/src/test/resources/gbm_v1.00_names.mojo/trees/t00_000.bin").unwrap();
     let size = file.metadata().unwrap().len();
     println!("file size is {}", size);
-    let root = read_file(&mut file).expect("ERROR");
+    let mojo_reader = MojoReader::new(MojoInformation::new());
+    let root = mojo_reader.read_tree_from_file(&mut file).expect("ERROR");
     println!("byte count is {}", size);
 
     treeprint(&root);

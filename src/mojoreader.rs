@@ -8,6 +8,9 @@ use acqua::acquamodel::*;
 use acqua::acquamodel::Col;
 use mojoflags::MojoFlags;
 use mojoflags::SplitValueType;
+use std::fs::File;
+use std::io;
+use std::io::Read;
 
 enum NaSplitDir {
     None,
@@ -33,13 +36,13 @@ pub struct MojoReader {
     info: MojoInformation,
 }
 
-pub struct ByteArrayReader<'a>  {
+struct ByteArrayReader<'a>  {
     input: &'a mut Iter<'a, u8>
 }
 
 impl <'a> ByteArrayReader<'a> {
 
-    pub fn new(input: &'a mut Iter<'a, u8>) -> ByteArrayReader<'a> {
+    fn new(input: &'a mut Iter<'a, u8>) -> ByteArrayReader<'a> {
         ByteArrayReader {
             input
         }
@@ -105,7 +108,15 @@ impl MojoReader {
         MojoReader{info: info}
     }
 
-    pub fn read_tree(&mut self, ba: &mut ByteArrayReader) -> Result<Node, Error> {
+    pub fn read_tree_from_file(&self, file: &mut File) -> io::Result<Node> {
+        let mut buf = Vec::new();
+        file.read_to_end(&mut buf)?;
+        let input = &mut buf.iter();
+        let ba = &mut ByteArrayReader::new(input);
+        self.read_tree(ba)
+    }
+
+    fn read_tree(&self, ba: &mut ByteArrayReader) -> Result<Node, Error> {
 
         let flagbyte = ba.read_u8()?;
         let nodeflags = MojoFlags::new(flagbyte)?;
