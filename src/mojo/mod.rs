@@ -2,20 +2,23 @@ use std::collections::HashMap;
 use std::io;
 use std::io::Error;
 use std::path::Path;
+use mojoreader::MojoInformation;
+use mojoreader::MojoReader;
+use std::fs::File;
+use acqua::acquamodel::Node;
 
 mod modelini;
 mod gbm;
 mod treemodel;
 
 pub struct Mojo {
-
+    trees: Vec<Vec<Node>>
 }
 
 pub struct BinomialPrediction {
     pub label_index: u32,
     pub label: String,
-    pub p0: f64,
-    pub p1: f64,
+    pub pred: Vec<f64>,
 }
 
 impl Mojo {
@@ -24,29 +27,86 @@ impl Mojo {
             return Err(Error::new(io::ErrorKind::InvalidInput, "Reading zipped mojos is not yet implemented"));
         }
         println!("HELLO FROM Mojo::load('{}')", p.as_ref().to_path_buf().into_os_string().to_str().unwrap());
-        let model_ini_path = p.as_ref().join("model.ini");
-        println!("modelini: '{}'", model_ini_path.clone().into_os_string().to_str().unwrap());
+        let model_ini_path = &p;
+        println!("modelini: '{}'", model_ini_path.as_ref().to_str().unwrap());
         let modelini = modelini::ModelIni::parse(model_ini_path)?;
 
         for (key,value) in modelini.s_info {
             println!("info['{}']='{}'", key, value);
         }
 
+        println!("-*-*-*-");
         println!("mojo_version: {}", modelini.info.mojo_version);
-        Ok(Mojo{})
+        println!("n_classes: {}", modelini.info.n_classes);
+        println!("n_trees: {}", modelini.info.n_trees);
+        println!("n_trees_per_class: {}", modelini.info.n_trees_per_class);
+        println!("n_domains: {}", modelini.info.n_domains);
+        println!("default_threshold: {}", modelini.info.default_threshold);
+        println!("-*-*-*-");
+        println!("\nColumns: {}", modelini.columns.join(","));
+        println!("\nDomains:");
+        for (name,domain) in modelini.domains {
+            println!("/{}/ = [{:03}] {} file:'{}' levels:{} {{{}}}", name, domain.col_index,
+                     domain.col_name,
+                     domain.file_name,
+                     domain.values.len(),
+                     domain.values.join(","),
+            );
+        }
+        // read all trees
+        let mojo_reader = MojoReader::new(MojoInformation {
+            mojo_version: modelini.info.mojo_version as u16
+        });
+        let groups= if modelini.info.n_classes > 2 { modelini.info.n_classes } else { 1 };
+        let mut trees = Vec::new();
+        for i in 0..groups {
+            let mut class_trees = Vec::new();
+            for j in 0..modelini.info.n_trees {
+                let res = format!("trees/t{:02}_{:03}.bin", i, j);
+                println!("{} / {}", p.as_ref().to_str().unwrap_or("???"), res);
+                let tree_path = p.as_ref().join(res).canonicalize()?;
+                println!("loading tree from {}", tree_path.to_str().unwrap_or("???"));
+                let mut tree_file = File::open(tree_path)?;
+                let tree = mojo_reader.read_tree_from_file(&mut tree_file)?; // todo
+                class_trees.push(tree);
+            }
+            trees.push(class_trees);
+        }
+        Ok(Mojo{trees})
     }
 
-    pub fn predict(&self, row: Vec<f64>) -> io::Result<BinomialPrediction>{
-        let _preds = gbm::score(&row, 0f64)?;
+    pub fn gbm_score(&self, tree: &Node, row: &Vec<f64>) -> f64 {
+        0.007023 // TODO really traverse the tree
+    }
+
+    pub fn gbm_predict(&self, row: &Vec<f64>) -> io::Result<BinomialPrediction>{
+//        let _preds = gbm::score(&row, 0f64)?;
+        // GBM prediction
+
+        let mut pred = Vec::new();
+        for group in &self.trees {
+            let mut group_pred = 0.0;
+            for tree in group {
+                let p = self.gbm_score(&tree, row);
+                group_pred += p;
+            }
+            pred.push(group_pred);
+        }
+        if self.trees.len() == 1 {
+            let complement = 1.0 - &pred[0];
+            &pred.push(complement);
+        }
+
         Ok(BinomialPrediction{
             label_index: 0,
             label: String::from("RAW_DUMMY"),
-            p0: 0.5,
-            p1: 0.5,
+            pred,
         })
     }
 
     pub fn predict_binomial_easy(&self, _row: HashMap<&str, &str>) -> io::Result<BinomialPrediction>{
+        let row= Vec::new();
+        // TODO: convert row from hashmap to vector of floats
         /*
         TODO:
         - preamble:
@@ -66,12 +126,6 @@ impl Mojo {
                     - MojoModel::getPrediction(preds, row, ...)
                 - compute second value (1-first)
         */
-//        Err(Error::new(io::ErrorKind::WriteZero, "not implemented"))
-        Ok(BinomialPrediction{
-            label_index: 0,
-            label: String::from("EASY_DUMMY"),
-            p0: 0.5,
-            p1: 0.5,
-        })
+        self.gbm_predict(&row)
     }
 }

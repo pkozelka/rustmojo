@@ -21,7 +21,7 @@ enum NaSplitDir {
 }
 
 pub struct MojoInformation {
-    mojo_version: u16,
+    pub mojo_version: u16,
     // columns, domains, ...
 }
 
