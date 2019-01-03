@@ -12,8 +12,8 @@ pub trait Column {
 
 pub enum Comparison {
     None,
-    IsLessThan(f32),
-    BitsetContains(Box<Bitset>),
+    Numeric(f32),
+    Bitset(Box<Bitset>),
 }
 
 pub enum NoNumberHandling {
@@ -23,9 +23,9 @@ pub enum NoNumberHandling {
 }
 
 pub struct Condition {
+    pub nan: NoNumberHandling,
     pub comparison: Comparison,
     pub invert: bool,
-    pub nan: NoNumberHandling,
 }
 
 pub struct DecisionNode {

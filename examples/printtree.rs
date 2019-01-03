@@ -35,7 +35,7 @@ fn treeprint_level(indent: usize, node: &Node) {
             }
             match decision.condition.comparison {
                 Comparison::None => {},
-                Comparison::IsLessThan(f) => {
+                Comparison::Numeric(f) => {
                     ifline.push_str(&col_name);
                     if decision.condition.invert {
                         ifline.push_str(&format!(" >= {}", f));
@@ -43,7 +43,7 @@ fn treeprint_level(indent: usize, node: &Node) {
                         ifline.push_str(&format!(" < {}", f));
                     }
                 },
-                Comparison::BitsetContains(_) => {
+                Comparison::Bitset(_) => {
                     if decision.condition.invert {
                         ifline.push('!');
                     }

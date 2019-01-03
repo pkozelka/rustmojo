@@ -5,7 +5,6 @@ use std::io::ErrorKind;
 use std::slice::Iter;
 
 use acqua::acquamodel::*;
-use acqua::acquamodel::Col;
 use mojoflags::MojoFlags;
 use mojoflags::SplitValueType;
 use std::fs::File;
@@ -138,19 +137,21 @@ impl MojoReader {
         let condition: Condition;
 
         if let NaSplitDir::NAvsREST = dir {
-            condition = Condition{
-                comparison: Comparison::None,
+            condition = Condition {
                 nan: NoNumberHandling::AsTrue,
+                comparison: Comparison::None,
                 invert: false
             };
         } else {
+            let leftward = match dir {
+                NaSplitDir::Left | NaSplitDir::NALeft => true,
+                _ => false,
+            };
             condition = match nodeflags.split_value_type {
-                SplitValueType::Number => {
-                    Condition {
-                        comparison: Comparison::IsLessThan(ba.read_f32()?),
-                        nan: NoNumberHandling::AsFalse,
-                        invert: false
-                    }
+                SplitValueType::Number => Condition {
+                    nan: if leftward {NoNumberHandling::AsFalse} else {NoNumberHandling::AsTrue},
+                    comparison: Comparison::Numeric(ba.read_f32()?),
+                    invert: false
                 },
                 SplitValueType::Bitset => {
                     let bit_offset = ba.read_u16()?;
@@ -166,16 +167,16 @@ impl MojoReader {
                     }
                     println!("--");
                     Condition {
-                        comparison: Comparison::BitsetContains(Box::new(MojoBitset::new(/*todo*/))),
                         nan: NoNumberHandling::None,
+                        comparison: Comparison::Bitset(Box::new(MojoBitset::new(/*todo*/))),
                         invert: false
                     }
                 },
                 SplitValueType::Bitset32 => {
                     let _bits = ba.read_u32()?;
                     Condition {
-                        comparison: Comparison::BitsetContains(Box::new(MojoBitset::new(/*todo*/))),
-                        nan: NoNumberHandling::None,
+                        nan: if leftward {NoNumberHandling::AsFalse} else {NoNumberHandling::AsTrue},
+                        comparison: Comparison::Bitset(Box::new(MojoBitset::new(/*todo*/))),
                         invert: false
                     }
                 },
