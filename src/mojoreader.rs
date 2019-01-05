@@ -124,11 +124,11 @@ impl MojoReader {
                  nodeflags.left_node_is_leaf,
                  nodeflags.right_node_is_leaf,
                  nodeflags.offset_size);
-        let split_column_id = ba.read_u16()?;
+        let split_column_id = ba.read_u16()? as usize;
         println!("field_no {}", split_column_id);
 
         if split_column_id == 0xFFFF {
-            return Ok(Node::ValueNode(ba.read_f32()?))
+            return Ok(Node::ValueNode(ba.read_f32()? as f64))
         }
 
         let dir = ba.read_direction()?;
@@ -150,7 +150,7 @@ impl MojoReader {
             condition = match nodeflags.split_value_type {
                 SplitValueType::Number => Condition {
                     nan: if leftward {NoNumberHandling::AsFalse} else {NoNumberHandling::AsTrue},
-                    comparison: Comparison::Numeric(ba.read_f32()?),
+                    comparison: Comparison::Numeric(ba.read_f32()? as f64),
                     invert: false
                 },
                 SplitValueType::Bitset => {
@@ -186,7 +186,7 @@ impl MojoReader {
         let left_node = if nodeflags.left_node_is_leaf {
             let leaf = ba.read_f32()?;
             println!("left leaf: {}", leaf);
-            Node::ValueNode(leaf)
+            Node::ValueNode(leaf as f64)
         } else {
             println!("offset");
             ba.skip(nodeflags.offset_size as u16)?;
@@ -197,7 +197,7 @@ impl MojoReader {
         let right_node = if nodeflags.right_node_is_leaf {
             let leaf = ba.read_f32()?;
             println!("right leaf: {}", leaf);
-            Node::ValueNode(leaf)
+            Node::ValueNode(leaf as f64)
         } else {
             println!("right node");
             self.read_tree(ba)?

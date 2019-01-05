@@ -7,12 +7,12 @@ pub trait Bitset {
 }
 
 pub trait Column {
-    fn get_column_no(&self) -> u16;
+    fn get_column_no(&self) -> usize;
 }
 
 pub enum Comparison {
     None,
-    Numeric(f32),
+    Numeric(f64),
     Bitset(Box<Bitset>),
 }
 
@@ -36,7 +36,7 @@ pub struct DecisionNode {
 }
 
 pub enum Node {
-    ValueNode(f32),
+    ValueNode(f64),
     DecisionNode(DecisionNode)
 }
 
@@ -53,11 +53,11 @@ impl DecisionNode {
 }
 
 pub struct Col {
-    column_no: u16
+    column_no: usize
 }
 
 impl Col {
-    pub fn new(column_no: u16) -> Self {
+    pub fn new(column_no: usize) -> Self {
         Col {
             column_no
         }
@@ -65,7 +65,7 @@ impl Col {
 }
 
 impl Column for Col {
-    fn get_column_no(&self) -> u16 {
+    fn get_column_no(&self) -> usize {
         self.column_no
     }
 }
