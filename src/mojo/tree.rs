@@ -162,3 +162,31 @@ impl Mojo {
         self.gbm_predict(&row)
     }
 }
+
+fn correct_probabilities(scored: &Vec<f64>, prior_class_distrib: Vec<f64>, model_class_distrib: Vec<f64>) -> io::Result<Vec<f64>> {
+    let mut probsum = 0.0;
+    let mut scored2 = Vec::new();
+    for c in 1..scored.len() {
+        let pred: &f64 = scored.get(c).unwrap();
+        let original_fraction = prior_class_distrib[c-1];
+        let oversampled_fraction = model_class_distrib[c-1];
+        if pred.is_nan() {
+            return Err(Error::new(ErrorKind::InvalidData, "Predicted NAN class probability"));
+        }
+        let pred2 =
+            if original_fraction != 0.0 && oversampled_fraction != 0.0 {
+                pred * original_fraction / oversampled_fraction
+            } else {
+                *pred
+            };
+        scored2.push(pred2);
+        probsum += pred2;
+    }
+    if probsum <= 0.0 {
+        return Err(Error::new(ErrorKind::InvalidData, format!("Total of predicted probabilities is {}", probsum)));
+    }
+    Ok(scored2.iter()
+        .map(|p| p / probsum)
+        .collect()
+    )
+}
