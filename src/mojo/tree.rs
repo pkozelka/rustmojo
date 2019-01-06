@@ -190,3 +190,11 @@ fn correct_probabilities(scored: &Vec<f64>, prior_class_distrib: Vec<f64>, model
         .collect()
     )
 }
+
+fn get_prediction(preds: &Vec<f64>, threshold: f64) -> io::Result<usize> {
+    if preds.len() == 3 {
+        Ok(if preds[2] >= threshold {1} else {0})
+    } else {
+        Err(Error::new(ErrorKind::InvalidData, "multinomial unimplemented"))
+    }
+}
