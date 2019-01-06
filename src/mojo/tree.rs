@@ -133,6 +133,7 @@ impl Mojo {
 
     pub fn predict_binomial_easy(&self, easy_row: HashMap<&str, &str>) -> io::Result<BinomialPrediction>{
         let mut row = Vec::<f64>::new();
+        let a: Option<i64> = None;
         for (_key, value) in easy_row {
             match value.parse::<f64>() {
                 Ok(v) => row.push(v),

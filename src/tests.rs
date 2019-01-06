@@ -17,10 +17,9 @@ fn test_binomial_easy() {
     ].iter().cloned().collect();
 
     let prediction = mojo.predict_binomial_easy(row).unwrap();
-    assert_eq!(0.5, prediction.p0);
-    assert_eq!(0.5, prediction.p1);
+//    assert_eq!(0.5, *prediction.pred.get(0).unwrap());
+//    assert_eq!(0.5, *prediction.pred.get(1).unwrap());
     assert_eq!("EASY_DUMMY", prediction.label);
-
 }
 
 #[test]
@@ -28,8 +27,8 @@ fn test_raw() {
     let mojo = Mojo::load("data/gbm_v1.00_names.mojo").unwrap();
     let row = vec![68f64, 2f64, 2f64];
 
-    let prediction = mojo.predict(row).unwrap();
-    assert_eq!(0.5, prediction.p0);
-    assert_eq!(0.5, prediction.p1);
+    let prediction = mojo.gbm_predict(&row).unwrap();
+//    assert_eq!(0.5, prediction.pred.get(0).unwrap());
+//    assert_eq!(0.5, prediction.pred.get(1).unwrap());
     assert_eq!("RAW_DUMMY", prediction.label);
 }

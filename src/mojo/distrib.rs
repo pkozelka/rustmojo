@@ -18,9 +18,11 @@ Gaussian = 4,
 
 impl DistributionFamilyType {
     fn parse(value: &str) -> io::Result<Box<DistributionFamily>> {
-        if value.eq("bernoulli") { Ok(Box::new(BernoulliDistributionFamily{})) }
-        else if value.eq("gaussian") { Ok(Box::new(GaussianDistributionFamily{})) }
-        else { Err(Error::new(ErrorKind::InvalidData, format!("cannot parse distribution family type: '{}'", value))) }
+        match value {
+            "bernoulli" => Ok(Box::new(BernoulliDistributionFamily {})),
+            "gaussian" => Ok(Box::new(GaussianDistributionFamily{})),
+            _ => Err(Error::new(ErrorKind::InvalidData, format!("cannot parse distribution family type: '{}'", value)))
+        }
     }
 }
 
@@ -67,3 +69,8 @@ pub fn do_distribution(preds: &mut[f64;3], init_f: f64, offset: f64, n_classes: 
     Ok(())
 }
 
+#[test]
+fn test_distrib() {
+    let x = DistributionFamilyType::parse("bernoulli").unwrap();
+    assert_eq!(DistributionFamilyType::Bernoulli as usize, x.get_distribution_family_type() as usize);
+}
