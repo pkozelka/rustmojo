@@ -10,6 +10,7 @@ use acqua::acquamodel::Node;
 use acqua::acquamodel::NoNumberHandling;
 use acqua::acquamodel::Comparison;
 use mojo::modelini;
+use std::cmp::Ordering;
 
 pub struct Mojo {
     trees: Vec<Vec<Node>>
@@ -198,4 +199,27 @@ fn get_prediction(preds: &Vec<f64>, threshold: f64) -> io::Result<usize> {
     } else {
         Err(Error::new(ErrorKind::InvalidData, "multinomial unimplemented"))
     }
+}
+
+fn log_rescale(preds: Vec<f64>) -> (f64, Vec<f64>) {
+    let max_val = preds.iter()
+        .max_by(|&a,&b| a.partial_cmp(b).unwrap_or(Ordering::Equal))
+        .unwrap();
+
+    let mut dsum = 0.0;
+    let preds = preds.iter()
+        .map(|x| {
+            let val = f64::exp(x - max_val);
+            dsum += val;
+            val
+        })
+        .collect();
+    (dsum, preds)
+}
+
+fn gbm_rescale(preds: Vec<f64>) -> Vec<f64> {
+    let (sum, preds) = log_rescale(preds);
+    preds.iter()
+        .map(|x| x / sum)
+        .collect()
 }
