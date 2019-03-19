@@ -4,9 +4,9 @@ use std::fs::File;
 
 use this::acqua::acquamodel::Comparison;
 use this::acqua::acquamodel::Node;
-use this::mojoreader::MojoReader;
 use this::acqua::acquamodel::NoNumberHandling;
 use this::mojoreader::MojoInformation;
+use this::mojoreader::MojoReader;
 
 fn treeprint(node: &Node) {
     println!("Tree:");
@@ -62,7 +62,7 @@ fn treeprint_level(indent: usize, node: &Node) {
 }
 
 fn main() {
-    let mut file= File::open("/home/pk/h2o/h2o-mojo-java/src/test/resources/gbm_v1.00_names.mojo/trees/t00_000.bin").unwrap();
+    let mut file= File::open("data/gbm_v1.00_names.mojo/trees/t00_000.bin").unwrap();
     let size = file.metadata().unwrap().len();
     println!("file size is {}", size);
     let mojo_reader = MojoReader::new(MojoInformation::new());

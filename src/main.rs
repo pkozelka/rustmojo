@@ -1,11 +1,12 @@
 extern crate rustmojo;
 
-use rustmojo::mojo::Mojo;
 use std::collections::HashMap;
 
+use rustmojo::mojo::Mojo;
+
 fn main() {
-//    let mojo = Mojo::load("data/gbm_v1.00_names.mojo").unwrap();
-    let mojo = Mojo::load("/home/pk/h2o/h2o-mojo/testmodels/prostate/unzipped").unwrap();
+    let mojo = Mojo::load("data/gbm_v1.00_names.mojo").unwrap();
+//    let mojo = Mojo::load("/home/pk/h2o/h2o-mojo/testmodels/prostate/unzipped").unwrap();
     let row: HashMap<&str,&str> = [
         ("AGE", "68"),
         ("RACE", "2"),
