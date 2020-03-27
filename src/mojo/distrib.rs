@@ -1,6 +1,6 @@
+use std::io;
 use std::io::Error;
 use std::io::ErrorKind;
-use std::io;
 
 pub enum DistributionFamilyType {
 //    unknown = 0,
@@ -17,7 +17,7 @@ Gaussian = 4,
 }
 
 impl DistributionFamilyType {
-    fn parse(value: &str) -> io::Result<Box<DistributionFamily>> {
+    fn parse(value: &str) -> io::Result<Box<dyn DistributionFamily>> {
         match value {
             "bernoulli" => Ok(Box::new(BernoulliDistributionFamily {})),
             "gaussian" => Ok(Box::new(GaussianDistributionFamily{})),
@@ -45,7 +45,7 @@ impl DistributionFamily for GaussianDistributionFamily {
     fn link_inv(&self, f: f64) -> f64 {f}
 }
 
-pub fn do_distribution(preds: &mut[f64;3], init_f: f64, offset: f64, n_classes: usize, family: &DistributionFamily) -> io::Result<()> {
+pub fn do_distribution(preds: &mut[f64;3], init_f: f64, offset: f64, n_classes: usize, family: &dyn DistributionFamily) -> io::Result<()> {
     match family.get_distribution_family_type() {
         DistributionFamilyType::Bernoulli | DistributionFamilyType::ModifiedHuber/*NI*/ => {
             let f = preds[1] + init_f + offset;

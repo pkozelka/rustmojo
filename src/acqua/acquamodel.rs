@@ -13,7 +13,7 @@ pub trait Column {
 pub enum Comparison {
     None,
     Numeric(f64),
-    Bitset(Box<Bitset>),
+    Bitset(Box<dyn Bitset>),
 }
 
 pub enum NoNumberHandling {
@@ -29,7 +29,7 @@ pub struct Condition {
 }
 
 pub struct DecisionNode {
-    pub column: Box<Column>,
+    pub column: Box<dyn Column>,
     pub condition: Condition,
     pub do_then: Box<Node>,
     pub do_else: Box<Node>,
@@ -42,7 +42,7 @@ pub enum Node {
 
 impl DecisionNode {
     #[allow(dead_code)]
-    fn new(column: Box<Column>, condition: Condition, do_then: Node, do_else: Node) -> DecisionNode {
+    fn new(column: Box<dyn Column>, condition: Condition, do_then: Node, do_else: Node) -> DecisionNode {
         DecisionNode {
             column,
             condition,

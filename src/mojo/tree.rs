@@ -1,16 +1,17 @@
+use std::cmp::Ordering;
 use std::collections::HashMap;
+use std::fs::File;
 use std::io;
 use std::io::Error;
 use std::io::ErrorKind;
 use std::path::Path;
-use mojoreader::MojoInformation;
-use mojoreader::MojoReader;
-use std::fs::File;
+
+use acqua::acquamodel::Comparison;
 use acqua::acquamodel::Node;
 use acqua::acquamodel::NoNumberHandling;
-use acqua::acquamodel::Comparison;
 use mojo::modelini;
-use std::cmp::Ordering;
+use mojoreader::MojoInformation;
+use mojoreader::MojoReader;
 
 pub struct Mojo {
     trees: Vec<Vec<Node>>
@@ -134,7 +135,7 @@ impl Mojo {
 
     pub fn predict_binomial_easy(&self, easy_row: HashMap<&str, &str>) -> io::Result<BinomialPrediction>{
         let mut row = Vec::<f64>::new();
-        let a: Option<i64> = None;
+        let _a: Option<i64> = None;
         for (_key, value) in easy_row {
             match value.parse::<f64>() {
                 Ok(v) => row.push(v),
@@ -165,7 +166,7 @@ impl Mojo {
     }
 }
 
-fn correct_probabilities(scored: &Vec<f64>, prior_class_distrib: Vec<f64>, model_class_distrib: Vec<f64>) -> io::Result<Vec<f64>> {
+fn _correct_probabilities(scored: &Vec<f64>, prior_class_distrib: Vec<f64>, model_class_distrib: Vec<f64>) -> io::Result<Vec<f64>> {
     let mut probsum = 0.0;
     let mut scored2 = Vec::new();
     for c in 1..scored.len() {
@@ -193,7 +194,7 @@ fn correct_probabilities(scored: &Vec<f64>, prior_class_distrib: Vec<f64>, model
     )
 }
 
-fn get_prediction(preds: &Vec<f64>, threshold: f64) -> io::Result<usize> {
+fn _get_prediction(preds: &Vec<f64>, threshold: f64) -> io::Result<usize> {
     if preds.len() == 3 {
         Ok(if preds[2] >= threshold {1} else {0})
     } else {
